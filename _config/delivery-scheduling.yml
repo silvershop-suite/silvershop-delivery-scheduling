@@ -1,0 +1,12 @@
+---
+Name: silvershop-delivery-scheduling
+After:
+  - silvershop-core
+  - silvershop-shipping
+---
+SilverShop\Model\Order:
+  extensions:
+    - SilverShop\DeliveryScheduling\Extension\OrderSchedulingExtension
+SilverShop\Page\CheckoutPageController:
+  extensions:
+    - SilverShop\DeliveryScheduling\Extension\ShippingMethodStepExtension
