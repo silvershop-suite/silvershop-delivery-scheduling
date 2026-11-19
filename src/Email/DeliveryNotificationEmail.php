@@ -23,7 +23,7 @@ use Throwable;
  * Self-contained styling (its own inline-safe `<style>`), like click-and-collect's pickup email — it does not
  * depend on the core 6.2 email shell, so the module stays robust across core 6.1/6.2.
  *
- * Each message stamps two headers an optional silvershop/notification-log records with zero coupling (the log
+ * Each message stamps two headers an optional silvershop-suite/notification-log records with zero coupling (the log
  * only READS headers):
  *   X-SilverShop-Order-ID: {OrderID}
  *   X-SilverShop-Notification-Key: delivery.scheduled | delivery.out_for_delivery

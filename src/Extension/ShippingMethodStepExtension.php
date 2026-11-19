@@ -29,7 +29,7 @@ class ShippingMethodStepExtension extends Extension
      * Add the date + slot picker fields to the shipping-method form.
      *
      * This only appends fields — it deliberately does NOT call $form->setValidator(), which would REPLACE the
-     * form validator. silvershop/delivery-zones also hooks updateShippingMethodForm on this same controller and
+     * form validator. silvershop-suite/delivery-zones also hooks updateShippingMethodForm on this same controller and
      * installs its minimum-order validator via setValidator(); appending fields here leaves that intact, so the
      * two modules compose regardless of extension order. The picker needs no validator (the OptionsetField
      * always submits a pre-selected value); a future "slot required" rule must be ADDED to $form->getValidator(),

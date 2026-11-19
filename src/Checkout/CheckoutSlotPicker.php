@@ -33,7 +33,7 @@ class CheckoutSlotPicker
 
     /**
      * The fulfilment mode to offer windows for. Pickup wins when the order is a click-and-collect pickup, or
-     * when silvershop/shippability reports pickup-only lines; otherwise both delivery and pickup windows show
+     * when silvershop-suite/shippability reports pickup-only lines; otherwise both delivery and pickup windows show
      * (the method itself is chosen on the same form). The optional sibling accessors are reached through
      * {@see OptionalCall} so they resolve whether or not those modules are installed.
      */

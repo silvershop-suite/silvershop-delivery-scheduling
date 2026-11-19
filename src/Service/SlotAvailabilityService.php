@@ -23,8 +23,8 @@ use Throwable;
  * The rules, composed:
  *  - EARLIEST FEASIBLE: a window is only offered if its start is at least `now + prep` away, where prep is the
  *    per-slot override or the global default (minutes).
- *  - LEAD-TIME FLOOR: the cart's longest made-to-order expected date (from silvershop/product-status, soft) floors
- *    the earliest selectable date — a window before it is dropped.
+ *  - LEAD-TIME FLOOR: the cart's longest made-to-order expected date (from silvershop-suite/product-status, soft)
+ *    floors the earliest selectable date — a window before it is dropped.
  *  - SAME-DAY CUTOFF: once the day's cutoff time has passed, today is no longer offered.
  *  - CAPACITY: a window full of placed orders for that date is hidden (0 capacity = unlimited).
  *  - ASAP: the single earliest feasible window.
@@ -194,7 +194,7 @@ class SlotAvailabilityService
 
     /**
      * The earliest selectable date (Y-m-d) floored by the cart's longest made-to-order expected date, or null
-     * when silvershop/product-status is absent or no cart line carries an expected date.
+     * when silvershop-suite/product-status is absent or no cart line carries an expected date.
      *
      * Only the machine-readable ExpectedDate is used as a hard floor; the free-text lead-time sentence stays
      * display-only.
