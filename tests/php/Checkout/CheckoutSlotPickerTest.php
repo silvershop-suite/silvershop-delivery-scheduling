@@ -5,11 +5,19 @@ declare(strict_types=1);
 namespace SilverShop\DeliveryScheduling\Tests\Checkout;
 
 use SilverShop\DeliveryScheduling\Checkout\CheckoutSlotPicker;
+use SilverShop\DeliveryScheduling\Forms\SchedulePickerField;
 use SilverShop\DeliveryScheduling\Model\DeliverySlot;
-use SilverShop\DeliveryScheduling\Service\SlotAvailabilityService;
+use SilverShop\DeliveryScheduling\Tests\Stub\TestPickupMethod;
+use SilverShop\DeliveryScheduling\Tests\UsesScheduleSettings;
 use SilverShop\Model\Order;
+use SilverShop\Shipping\Model\ShippingMethod;
+use SilverShop\StoreLocations\Forms\WeeklyHoursField;
+use SilverShop\StoreLocations\Model\OpeningException;
+use SilverShop\StoreLocations\Model\StoreLocation;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\SapphireTest;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\Form;
 use SilverStripe\Forms\OptionsetField;
 use SilverStripe\ORM\FieldType\DBDatetime;
 
@@ -18,7 +26,13 @@ use SilverStripe\ORM\FieldType\DBDatetime;
  */
 class CheckoutSlotPickerTest extends SapphireTest
 {
+    use UsesScheduleSettings;
+
     protected $usesDatabase = true;
+
+    protected static $extra_dataobjects = [
+        TestPickupMethod::class,
+    ];
 
     protected function setUp(): void
     {
@@ -62,7 +76,7 @@ class CheckoutSlotPickerTest extends SapphireTest
 
     public function testNoWindowsAndNoAsapShowsNoticeNotOptionset(): void
     {
-        Config::modify()->set(SlotAvailabilityService::class, 'asap_enabled', false);
+        $this->scheduleSettings(['DeliveryScheduleAsap' => false]);
         // No slots created at all.
 
         $fields = CheckoutSlotPicker::fieldsFor(Order::create());
@@ -73,7 +87,7 @@ class CheckoutSlotPickerTest extends SapphireTest
 
     public function testSchedulingDisabledReturnsNoFields(): void
     {
-        Config::modify()->set(SlotAvailabilityService::class, 'scheduling_enabled', false);
+        $this->scheduleSettings(['DeliveryScheduleEnabled' => false]);
         $this->mondaySlot();
 
         $this->assertSame(0, CheckoutSlotPicker::fieldsFor(Order::create())->count());
@@ -125,5 +139,121 @@ class CheckoutSlotPickerTest extends SapphireTest
     public function testModeForDefaultsToBothWithoutSoftDeps(): void
     {
         $this->assertSame(DeliverySlot::MODE_BOTH, CheckoutSlotPicker::modeFor(Order::create()));
+    }
+
+    public function testApplyRefusesAWindowThatIsNotBookable(): void
+    {
+        // Audit M3: a crafted POST must not store a disabled, past or full window.
+        $slot = $this->mondaySlot();
+        $disabled = DeliverySlot::create(['Weekday' => 2, 'StartTime' => '10:00:00', 'Enabled' => 0]);
+        $disabled->write();
+        $full = DeliverySlot::create(['Weekday' => 3, 'StartTime' => '10:00:00', 'Enabled' => 1, 'Capacity' => 1]);
+        $full->write();
+        Order::create(['Status' => 'Paid', 'DeliverySlotID' => $full->ID, 'RequestedDate' => '2026-01-07'])->write();
+
+        foreach ([$disabled->ID . '|2026-01-06', $slot->ID . '|2025-12-29', $full->ID . '|2026-01-07', $slot->ID . '|2026-01-06'] as $token) {
+            $order = Order::create();
+            $this->assertFalse(CheckoutSlotPicker::applyToOrder($order, [CheckoutSlotPicker::FIELD => $token]), $token);
+            $this->assertSame(0, (int) $order->DeliverySlotID, $token);
+            $this->assertEmpty($order->RequestedDate, $token);
+        }
+    }
+
+    public function testApplyStoresADateOnlyChoice(): void
+    {
+        $this->scheduleSettings(['DeliveryScheduleMode' => 'date']);
+        $order = Order::create();
+
+        $this->assertTrue(CheckoutSlotPicker::applyToOrder($order, [CheckoutSlotPicker::FIELD => '0|2026-01-06']));
+        $this->assertSame(0, (int) $order->DeliverySlotID);
+        $this->assertSame('2026-01-06', $order->RequestedDate);
+        $this->assertTrue($order->HasSchedule());
+
+        $weekend = Order::create();
+        $this->assertFalse(CheckoutSlotPicker::applyToOrder($weekend, [CheckoutSlotPicker::FIELD => '0|2026-01-10']), 'Saturday');
+    }
+
+    public function testDateOnlyFieldShowsDatesWithoutTimes(): void
+    {
+        $this->scheduleSettings(['DeliveryScheduleMode' => 'date', 'DeliveryScheduleAsap' => false]);
+
+        $field = CheckoutSlotPicker::fieldsFor(Order::create())->dataFieldByName(CheckoutSlotPicker::FIELD);
+
+        $this->assertInstanceOf(SchedulePickerField::class, $field);
+        $this->assertArrayHasKey('0|2026-01-05', $field->getSource());
+        $this->assertArrayNotHasKey('0|2026-01-10', $field->getSource(), 'Saturday is not a working day');
+        $this->assertSame('0|2026-01-05', $field->getValue(), 'the earliest date is preselected');
+
+        $keys = array_map('strval', array_keys($field->getSource()));
+        $sorted = $keys;
+        sort($sorted);
+        $this->assertSame($sorted, $keys, 'dates are listed in date order');
+    }
+
+    public function testTheSinglePageComponentChecksTheValueInsteadOfTheField(): void
+    {
+        $this->scheduleSettings(['DeliveryScheduleMode' => 'date']);
+        $component = \SilverShop\DeliveryScheduling\Checkout\DeliveryScheduleCheckoutComponent::create();
+        $order = Order::create();
+
+        $field = $component->getFormFields($order)->dataFieldByName(CheckoutSlotPicker::FIELD);
+        $field->setValue('0|2026-01-10');
+        $this->assertTrue($field->validate()->isValid() === false, 'a value outside the list is still refused');
+
+        $this->assertTrue($component->validateData($order, [CheckoutSlotPicker::FIELD => '0|2026-01-06']));
+        $this->expectException(\SilverStripe\Core\Validation\ValidationException::class);
+        $component->validateData($order, [CheckoutSlotPicker::FIELD => '0|2026-01-10']);
+    }
+
+    public function testFieldChecksTheValueAgainstTheMethodChosenOnTheSameForm(): void
+    {
+        $field = SchedulePickerField::create(CheckoutSlotPicker::FIELD, 'When', [
+            '0|2026-01-06' => 'Tue',
+            '0|2026-01-07' => 'Wed',
+        ])
+            ->setOptionContexts(['0|2026-01-06' => ['pickup-1'], '0|2026-01-07' => ['pickup-2']])
+            ->setMethodContexts([10 => 'pickup-1', 20 => 'pickup-2'])
+            ->setDefaultContext('pickup-1');
+        $form = Form::create(null, 'Form', FieldList::create(
+            OptionsetField::create('ShippingMethodID', 'Method', [10 => 'Voorstraat', 20 => 'Nootdorp']),
+            $field
+        ), FieldList::create());
+
+        $form->loadDataFrom(['ShippingMethodID' => 20, CheckoutSlotPicker::FIELD => '0|2026-01-06']);
+        $this->assertFalse($field->validate()->isValid(), "another store's date is refused");
+
+        $form->loadDataFrom(['ShippingMethodID' => 20, CheckoutSlotPicker::FIELD => '0|2026-01-07']);
+        $this->assertTrue($field->validate()->isValid());
+
+        $form->loadDataFrom(['ShippingMethodID' => 10, CheckoutSlotPicker::FIELD => '0|2099-01-01']);
+        $this->assertFalse($field->validate()->isValid(), 'a value outside the list is refused');
+    }
+
+    public function testChoiceIsCheckedAgainstTheChosenPickupStore(): void
+    {
+        if (!class_exists(ShippingMethod::class) || !class_exists(StoreLocation::class)) {
+            $this->markTestSkipped('needs silvershop/shipping and silvershop-suite/store-locations');
+        }
+        Config::modify()->set(CheckoutSlotPicker::class, 'pickup_method_classes', [TestPickupMethod::class]);
+        $this->scheduleSettings(['DeliveryScheduleMode' => 'date']);
+
+        $hours = WeeklyHoursField::encode([1 => '09:00-18:00', 2 => '09:00-18:00', 3 => '09:00-18:00']);
+        $voorstraat = StoreLocation::create(['Title' => 'Voorstraat', 'Timezone' => 'Europe/Amsterdam', 'RegularHours' => $hours]);
+        $voorstraat->write();
+        $nootdorp = StoreLocation::create(['Title' => 'Nootdorp', 'Timezone' => 'Europe/Amsterdam', 'RegularHours' => $hours]);
+        $nootdorp->write();
+        OpeningException::create(['StoreLocationID' => $nootdorp->ID, 'DateFrom' => '2026-01-06', 'Type' => 'Closed'])->write();
+
+        $atVoorstraat = TestPickupMethod::create(['Name' => 'Collect at Voorstraat', 'TestStoreID' => $voorstraat->ID]);
+        $atVoorstraat->write();
+        $atNootdorp = TestPickupMethod::create(['Name' => 'Collect at Nootdorp', 'TestStoreID' => $nootdorp->ID]);
+        $atNootdorp->write();
+
+        $context = CheckoutSlotPicker::contextForMethod($atNootdorp);
+        $this->assertSame('pickup-' . $nootdorp->ID, $context['key']);
+
+        $order = Order::create();
+        $this->assertTrue(CheckoutSlotPicker::isChoiceValid($order, '0|2026-01-06', (int) $atVoorstraat->ID));
+        $this->assertFalse(CheckoutSlotPicker::isChoiceValid($order, '0|2026-01-06', (int) $atNootdorp->ID), 'Nootdorp is closed that day');
     }
 }

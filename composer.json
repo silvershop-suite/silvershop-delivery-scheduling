@@ -36,7 +36,8 @@
         "silverstripe/recipe-testing": "^4",
         "silverstripe/sqlite3": "^4",
         "squizlabs/php_codesniffer": "^3.0",
-        "silvershop-suite/store-locations": "^1.0"
+        "silvershop-suite/store-locations": "^1.0",
+        "silvershop/shipping": "^3.2 || ^4"
     },
     "suggest": {
         "silvershop-suite/click-and-collect": "Adds the collect-in-store fulfilment choice; its pickup orders reuse this module's windows (pickup slots come from here, not a second slot engine).",

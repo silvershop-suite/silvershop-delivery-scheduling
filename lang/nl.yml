@@ -39,6 +39,7 @@ nl:
     Asap: 'Zo snel mogelijk'
     Left: 'nog {count}'
     NoWindows: 'Er zijn momenteel geen bezorg- of afhaaltijden beschikbaar; we nemen contact met u op om een tijd af te spreken.'
+    LegendDate: 'Kies een bezorg- / afhaaldatum'
   SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail:
     SubjectScheduled: 'Uw bestelling #{OrderNo} is ingepland'
     SubjectOut: 'Uw bestelling #{OrderNo} is onderweg'
@@ -52,3 +53,29 @@ nl:
     OutFineprint: 'U ontvangt dit bericht omdat uw bestelling voor bezorging is ingepland.'
   SilverShop\DeliveryScheduling\Extension\DeliverySlotStoreLocationExtension:
     StoreLocationDesc: 'Optioneel. Een tijdvak voor één winkel wordt alleen aangeboden op dagen dat die winkel open is, en bij afhalen alleen voor die winkel. Leeg laten voor een tijdvak dat overal geldt.'
+  SilverShop\DeliveryScheduling\Extension\DeliveryScheduleSiteConfigExtension:
+    Header: 'Bezorg- en afhaaldatum'
+    Enabled: 'Klanten laten kiezen wanneer'
+    EnabledDesc: 'Toont in de checkout een keuze voor de bezorg- of afhaaldatum.'
+    Mode: 'Wat klanten kiezen'
+    ModeSlots: 'Een datum en een tijdvak'
+    ModeDate: 'Alleen een datum'
+    ModeDesc: 'Tijdvakken beheer je onder Delivery scheduling. Bij "alleen een datum" zijn geen tijdvakken nodig.'
+    LeadDays: 'Verwerkingstijd (werkdagen)'
+    LeadDaysDesc: 'De vroegste datum ligt zoveel werkdagen na de bestelling. 0 = dezelfde dag.'
+    Cutoff: 'Uiterste besteltijd'
+    CutoffDesc: 'Bestellingen na dit tijdstip tellen vanaf de volgende dag. Leeg = geen grens.'
+    HorizonDays: 'Dagen vooruit'
+    HorizonDaysDesc: 'Hoeveel dagen vooruit klanten kunnen kiezen.'
+    WorkingDays: 'Werkdagen'
+    WorkingDaysDesc: 'Dagen waarop bestellingen worden klaargemaakt en bezorgd. De verwerkingstijd telt deze dagen. Afhalen in een winkel volgt de openingstijden en sluitingsdagen van die winkel. Niets aangevinkt = maandag t/m vrijdag.'
+    Asap: '"Zo snel mogelijk" aanbieden'
+    AsapDesc: 'Een extra keuze voor de vroegst mogelijke datum.'
+    PrepMinutes: 'Standaard voorbereidingstijd per tijdvak (minuten)'
+    PrepMinutesDesc: 'Alleen bij tijdvakken: minuten die nodig zijn voordat een tijdvak kan beginnen, tenzij het tijdvak een eigen tijd heeft.'
+  SilverShop\DeliveryScheduling\Forms\SchedulePickerField:
+    Required: 'Kies een datum.'
+    Unavailable: 'Deze datum is (niet meer) beschikbaar voor de gekozen bezorging of afhaling. Kies een andere datum.'
+    NoneForMethod: 'Voor deze keuze zijn nu geen datums beschikbaar; we nemen contact met je op om een datum af te spreken.'
+  SilverShop\DeliveryScheduling\Checkout\DeliveryScheduleCheckoutComponent:
+    Unavailable: 'Deze datum is (niet meer) beschikbaar. Kies een andere datum.'

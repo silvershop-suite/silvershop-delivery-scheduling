@@ -39,6 +39,7 @@ it:
     Asap: 'Il prima possibile'
     Left: '{count} rimasti'
     NoWindows: 'Al momento non sono disponibili fasce di consegna o ritiro; ti contatteremo per concordare un orario.'
+    LegendDate: 'Scegli una data di consegna / ritiro'
   SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail:
     SubjectScheduled: 'Il tuo ordine #{OrderNo} è programmato'
     SubjectOut: 'Il tuo ordine #{OrderNo} è in arrivo'
@@ -52,3 +53,29 @@ it:
     OutFineprint: 'Ricevi questo messaggio perché il tuo ordine è programmato per la consegna.'
   SilverShop\DeliveryScheduling\Extension\DeliverySlotStoreLocationExtension:
     StoreLocationDesc: 'Facoltativo. Una fascia legata a un negozio è proposta solo nei giorni in cui il negozio è aperto e, per il ritiro, solo per quel negozio. Lascia vuoto per una fascia valida ovunque.'
+  SilverShop\DeliveryScheduling\Extension\DeliveryScheduleSiteConfigExtension:
+    Header: 'Date di consegna e ritiro'
+    Enabled: 'Lascia scegliere una data al cliente'
+    EnabledDesc: 'Mostra nel checkout la scelta della data di consegna o ritiro.'
+    Mode: 'Cosa sceglie il cliente'
+    ModeSlots: 'Una data e una fascia oraria'
+    ModeDate: 'Solo una data'
+    ModeDesc: 'Le fasce orarie si gestiscono in Delivery scheduling. Con "solo una data" non servono fasce.'
+    LeadDays: 'Tempo di preparazione (giorni lavorativi)'
+    LeadDaysDesc: 'La data più vicina è questo numero di giorni lavorativi dopo l''ordine. 0 = lo stesso giorno.'
+    Cutoff: 'Orario limite per gli ordini'
+    CutoffDesc: 'Gli ordini effettuati dopo quest''ora contano dal giorno successivo. Vuoto = nessun limite.'
+    HorizonDays: 'Giorni in anticipo'
+    HorizonDaysDesc: 'Quanti giorni in anticipo il cliente può scegliere.'
+    WorkingDays: 'Giorni lavorativi'
+    WorkingDaysDesc: 'Giorni in cui gli ordini vengono preparati e consegnati. Il tempo di preparazione conta questi giorni. Il ritiro in negozio segue gli orari e le chiusure di quel negozio. Nessuna selezione = da lunedì a venerdì.'
+    Asap: 'Offri "il prima possibile"'
+    AsapDesc: 'Una scelta in più per la data più vicina possibile.'
+    PrepMinutes: 'Tempo di preparazione predefinito per fascia (minuti)'
+    PrepMinutesDesc: 'Solo per le fasce: minuti necessari prima dell''inizio di una fascia, salvo che la fascia ne abbia uno proprio.'
+  SilverShop\DeliveryScheduling\Forms\SchedulePickerField:
+    Required: 'Scegli una data.'
+    Unavailable: 'Questa data non è (più) disponibile per la consegna o il ritiro scelto. Scegline un''altra.'
+    NoneForMethod: 'Al momento non ci sono date disponibili per questa scelta; ti contatteremo per concordare una data.'
+  SilverShop\DeliveryScheduling\Checkout\DeliveryScheduleCheckoutComponent:
+    Unavailable: 'Questa data non è (più) disponibile. Scegline un''altra.'

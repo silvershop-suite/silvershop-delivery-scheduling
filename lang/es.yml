@@ -39,6 +39,7 @@ es:
     Asap: 'Lo antes posible'
     Left: '{count} disponibles'
     NoWindows: 'Actualmente no hay franjas de entrega o recogida disponibles; nos pondremos en contacto para acordar un horario.'
+    LegendDate: 'Elige una fecha de entrega / recogida'
   SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail:
     SubjectScheduled: 'Su pedido #{OrderNo} está programado'
     SubjectOut: 'Su pedido #{OrderNo} está en camino'
@@ -52,3 +53,29 @@ es:
     OutFineprint: 'Recibe este mensaje porque su pedido está programado para entrega.'
   SilverShop\DeliveryScheduling\Extension\DeliverySlotStoreLocationExtension:
     StoreLocationDesc: 'Opcional. Una franja de una tienda solo se ofrece los días en que esa tienda abre y, para recogida, solo en esa tienda. Déjelo vacío para una franja válida en todas partes.'
+  SilverShop\DeliveryScheduling\Extension\DeliveryScheduleSiteConfigExtension:
+    Header: 'Fechas de entrega y recogida'
+    Enabled: 'Permitir que el cliente elija una fecha'
+    EnabledDesc: 'Muestra en el pago una opción para elegir la fecha de entrega o recogida.'
+    Mode: 'Qué elige el cliente'
+    ModeSlots: 'Una fecha y una franja horaria'
+    ModeDate: 'Solo una fecha'
+    ModeDesc: 'Las franjas se gestionan en Delivery scheduling. Con "solo una fecha" no hacen falta franjas.'
+    LeadDays: 'Tiempo de preparación (días laborables)'
+    LeadDaysDesc: 'La fecha más próxima es este número de días laborables después del pedido. 0 = el mismo día.'
+    Cutoff: 'Hora límite de pedido'
+    CutoffDesc: 'Los pedidos realizados después de esta hora cuentan desde el día siguiente. Vacío = sin límite.'
+    HorizonDays: 'Días de antelación'
+    HorizonDaysDesc: 'Con cuántos días de antelación puede elegir el cliente.'
+    WorkingDays: 'Días laborables'
+    WorkingDaysDesc: 'Días en los que se preparan y entregan los pedidos. El tiempo de preparación cuenta estos días. La recogida en tienda sigue el horario y los días de cierre de esa tienda. Nada marcado = de lunes a viernes.'
+    Asap: 'Ofrecer "lo antes posible"'
+    AsapDesc: 'Una opción adicional para la fecha más próxima posible.'
+    PrepMinutes: 'Tiempo de preparación por defecto de una franja (minutos)'
+    PrepMinutesDesc: 'Solo franjas: minutos necesarios antes de que empiece una franja, salvo que la franja tenga su propio tiempo.'
+  SilverShop\DeliveryScheduling\Forms\SchedulePickerField:
+    Required: 'Elige una fecha.'
+    Unavailable: 'Esta fecha no está (ya) disponible para la entrega o recogida elegida. Elige otra.'
+    NoneForMethod: 'Ahora no hay fechas disponibles para esta opción; te contactaremos para acordar una fecha.'
+  SilverShop\DeliveryScheduling\Checkout\DeliveryScheduleCheckoutComponent:
+    Unavailable: 'Esta fecha no está (ya) disponible. Elige otra.'

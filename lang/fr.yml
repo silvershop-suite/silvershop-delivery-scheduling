@@ -39,6 +39,7 @@ fr:
     Asap: 'Dès que possible'
     Left: '{count} restant(s)'
     NoWindows: 'Aucun créneau de livraison ou de retrait n''est actuellement disponible ; nous vous contacterons pour convenir d''un horaire.'
+    LegendDate: 'Choisissez une date de livraison / retrait'
   SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail:
     SubjectScheduled: 'Votre commande #{OrderNo} est programmée'
     SubjectOut: 'Votre commande #{OrderNo} est en route'
@@ -52,3 +53,29 @@ fr:
     OutFineprint: 'Vous recevez ce message car votre commande est programmée pour la livraison.'
   SilverShop\DeliveryScheduling\Extension\DeliverySlotStoreLocationExtension:
     StoreLocationDesc: 'Facultatif. Un créneau lié à un magasin n''est proposé que les jours où ce magasin est ouvert, et pour le retrait uniquement dans ce magasin. Laissez vide pour un créneau valable partout.'
+  SilverShop\DeliveryScheduling\Extension\DeliveryScheduleSiteConfigExtension:
+    Header: 'Dates de livraison et de retrait'
+    Enabled: 'Laisser le client choisir une date'
+    EnabledDesc: 'Affiche un choix de date de livraison ou de retrait lors du paiement.'
+    Mode: 'Ce que le client choisit'
+    ModeSlots: 'Une date et un créneau horaire'
+    ModeDate: 'Une date uniquement'
+    ModeDesc: 'Les créneaux se gèrent sous Delivery scheduling. Avec "une date uniquement", aucun créneau n''est nécessaire.'
+    LeadDays: 'Délai de préparation (jours ouvrés)'
+    LeadDaysDesc: 'La date la plus proche est ce nombre de jours ouvrés après la commande. 0 = le jour même.'
+    Cutoff: 'Heure limite de commande'
+    CutoffDesc: 'Les commandes passées après cette heure comptent à partir du lendemain. Vide = pas de limite.'
+    HorizonDays: 'Jours à l''avance'
+    HorizonDaysDesc: 'Combien de jours à l''avance le client peut choisir.'
+    WorkingDays: 'Jours ouvrés'
+    WorkingDaysDesc: 'Jours où les commandes sont préparées et livrées. Le délai de préparation compte ces jours. Le retrait en magasin suit les horaires et jours de fermeture de ce magasin. Rien de coché = du lundi au vendredi.'
+    Asap: 'Proposer "dès que possible"'
+    AsapDesc: 'Un choix supplémentaire pour la date la plus proche possible.'
+    PrepMinutes: 'Temps de préparation par défaut d''un créneau (minutes)'
+    PrepMinutesDesc: 'Créneaux uniquement : minutes nécessaires avant le début d''un créneau, sauf si le créneau a son propre temps.'
+  SilverShop\DeliveryScheduling\Forms\SchedulePickerField:
+    Required: 'Veuillez choisir une date.'
+    Unavailable: 'Cette date n''est pas (plus) disponible pour la livraison ou le retrait choisi. Veuillez en choisir une autre.'
+    NoneForMethod: 'Aucune date n''est disponible pour ce choix pour le moment ; nous vous contacterons pour convenir d''une date.'
+  SilverShop\DeliveryScheduling\Checkout\DeliveryScheduleCheckoutComponent:
+    Unavailable: 'Cette date n''est pas (plus) disponible. Veuillez en choisir une autre.'

@@ -39,6 +39,7 @@ de:
     Asap: 'So schnell wie möglich'
     Left: 'noch {count}'
     NoWindows: 'Derzeit sind keine Liefer- oder Abholzeiten verfügbar; wir melden uns, um einen Termin zu vereinbaren.'
+    LegendDate: 'Wählen Sie ein Liefer- / Abholdatum'
   SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail:
     SubjectScheduled: 'Ihre Bestellung #{OrderNo} ist terminiert'
     SubjectOut: 'Ihre Bestellung #{OrderNo} ist unterwegs'
@@ -52,3 +53,29 @@ de:
     OutFineprint: 'Sie erhalten diese Nachricht, weil Ihre Bestellung zur Lieferung geplant ist.'
   SilverShop\DeliveryScheduling\Extension\DeliverySlotStoreLocationExtension:
     StoreLocationDesc: 'Optional. Ein Zeitfenster für ein Geschäft wird nur an Tagen angeboten, an denen es geöffnet ist, und bei Abholung nur für dieses Geschäft. Leer lassen für ein Zeitfenster, das überall gilt.'
+  SilverShop\DeliveryScheduling\Extension\DeliveryScheduleSiteConfigExtension:
+    Header: 'Liefer- und Abholdatum'
+    Enabled: 'Kunden ein Datum wählen lassen'
+    EnabledDesc: 'Zeigt im Checkout eine Auswahl für das Liefer- oder Abholdatum.'
+    Mode: 'Was Kunden wählen'
+    ModeSlots: 'Ein Datum und ein Zeitfenster'
+    ModeDate: 'Nur ein Datum'
+    ModeDesc: 'Zeitfenster werden unter Delivery scheduling verwaltet. Bei "nur ein Datum" sind keine Zeitfenster nötig.'
+    LeadDays: 'Bearbeitungszeit (Werktage)'
+    LeadDaysDesc: 'Das früheste Datum liegt so viele Werktage nach der Bestellung. 0 = am selben Tag.'
+    Cutoff: 'Bestellschluss'
+    CutoffDesc: 'Bestellungen nach dieser Uhrzeit zählen ab dem nächsten Tag. Leer = kein Bestellschluss.'
+    HorizonDays: 'Tage im Voraus'
+    HorizonDaysDesc: 'Wie viele Tage im Voraus Kunden wählen können.'
+    WorkingDays: 'Werktage'
+    WorkingDaysDesc: 'Tage, an denen Bestellungen vorbereitet und geliefert werden. Die Bearbeitungszeit zählt diese Tage. Abholung in einer Filiale folgt deren Öffnungszeiten und Schließtagen. Nichts angehakt = Montag bis Freitag.'
+    Asap: '"So schnell wie möglich" anbieten'
+    AsapDesc: 'Eine zusätzliche Auswahl für das frühestmögliche Datum.'
+    PrepMinutes: 'Standard-Vorbereitungszeit je Zeitfenster (Minuten)'
+    PrepMinutesDesc: 'Nur bei Zeitfenstern: Minuten, die vor Beginn eines Zeitfensters nötig sind, sofern das Zeitfenster keine eigene Zeit hat.'
+  SilverShop\DeliveryScheduling\Forms\SchedulePickerField:
+    Required: 'Bitte wählen Sie ein Datum.'
+    Unavailable: 'Dieses Datum ist für die gewählte Lieferung oder Abholung (nicht mehr) verfügbar. Bitte wählen Sie ein anderes.'
+    NoneForMethod: 'Für diese Auswahl sind derzeit keine Termine verfügbar; wir melden uns, um einen Termin zu vereinbaren.'
+  SilverShop\DeliveryScheduling\Checkout\DeliveryScheduleCheckoutComponent:
+    Unavailable: 'Dieses Datum ist (nicht mehr) verfügbar. Bitte wählen Sie ein anderes.'

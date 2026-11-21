@@ -8,9 +8,10 @@ use DateTimeImmutable;
 use SilverShop\DeliveryScheduling\Model\DeliverySlot;
 use SilverShop\DeliveryScheduling\Support\OptionalCall;
 use SilverShop\Model\Order;
+use SilverShop\StoreLocations\Hours\DateRules;
 use SilverShop\StoreLocations\Hours\OpeningCalendar;
+use SilverShop\StoreLocations\Model\OpeningException;
 use SilverShop\StoreLocations\Model\StoreLocation;
-use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Model\ArrayData;
 use SilverStripe\Model\List\ArrayList;
@@ -20,164 +21,182 @@ use SilverStripe\ORM\FieldType\DBDatetime;
 use Throwable;
 
 /**
- * Turns the recurring {@link DeliverySlot} templates into concrete, bookable (date, slot) windows for the
- * checkout picker and the headless slot endpoint.
+ * Turns the settings and the recurring {@link DeliverySlot} templates into the concrete choices the checkout offers:
+ * dates (date-only mode) or (date, slot) windows (time-slot mode).
  *
  * The rules, composed:
- *  - EARLIEST FEASIBLE: a window is only offered if its start is at least `now + prep` away, where prep is the
- *    per-slot override or the global default (minutes).
- *  - LEAD-TIME FLOOR: the cart's longest made-to-order expected date (from silvershop-suite/product-status, soft)
- *    floors the earliest selectable date — a window before it is dropped.
- *  - SAME-DAY CUTOFF: once the day's cutoff time has passed, today is no longer offered.
- *  - CAPACITY: a window full of placed orders for that date is hidden (0 capacity = unlimited).
- *  - STORE DAYS (with silvershop-suite/store-locations): a slot tied to a store, and every pickup slot of an order
- *    collected at a store, is only offered on days that store is open; a pickup order only sees its own store's
- *    slots (plus slots without a store).
- *  - ASAP: the single earliest feasible window.
+ *  - EARLIEST DATE: today, or tomorrow once today's cutoff has passed, plus the preparation time in working days.
+ *    Working days are the pickup store's open days (silvershop-suite/store-locations: its hours, exceptions and
+ *    closures), otherwise the configured weekdays minus the global closing days. With no preparation time the
+ *    earliest date is just today (or tomorrow after the cutoff).
+ *  - LEAD-TIME FLOOR: the cart's longest made-to-order expected date (silvershop-suite/product-status, soft)
+ *    floors the earliest date too.
+ *  - DAYS AHEAD: nothing later than today + the configured number of days.
+ *  - DATE-ONLY MODE: every working / open day from the earliest date on.
+ *  - TIME-SLOT MODE: the slots of each day, each needing its own prep time before it starts; a full slot (capacity)
+ *    is hidden; a slot tied to a store only on that store's open days; a pickup order only sees its own store's
+ *    slots (plus slots without a store); a slot without a store skips the global closing days.
+ *  - ASAP: the single earliest choice.
  *
- * Pure and deterministic — `now` is injectable, so every rule is unit-testable without the clock.
+ * Pure and deterministic: `now` is injectable, so every rule is unit-testable without the clock.
  */
 class SlotAvailabilityService
 {
     use Injectable;
-    use Configurable;
 
-    /**
-     * How many days ahead (inclusive of today) to offer windows for.
-     *
-     * @config
-     */
-    private static int $horizon_days = 14;
-
-    /**
-     * Same-day cutoff as HH:MM:SS. Empty disables the cutoff (today stays offered until its last feasible window).
-     *
-     * @config
-     */
-    private static string $cutoff_time = '';
-
-    /**
-     * Global prep / lead time in minutes, applied to a window that has no per-slot override.
-     *
-     * @config
-     */
-    private static int $global_prep_minutes = 0;
-
-    /**
-     * Whether an "as soon as possible" choice is offered alongside the scheduled windows.
-     *
-     * @config
-     */
-    private static bool $asap_enabled = true;
-
-    /**
-     * Master switch for the whole scheduling layer (the checkout picker is suppressed when off).
-     *
-     * @config
-     */
-    private static bool $scheduling_enabled = true;
+    private ?ScheduleSettings $settings = null;
 
     /** @var array<string, bool> */
     private array $openMemo = [];
+
+    /** @var array<int, array{string, string, bool}>|null */
+    private ?array $globalClosures = null;
 
     public function __construct(private ?Order $order = null)
     {
     }
 
+    public function settings(): ScheduleSettings
+    {
+        return $this->settings ??= ScheduleSettings::current();
+    }
+
+    public function withSettings(ScheduleSettings $settings): static
+    {
+        $this->settings = $settings;
+
+        return $this;
+    }
+
     public function isSchedulingEnabled(): bool
     {
-        return (bool) static::config()->get('scheduling_enabled');
+        return $this->settings()->enabled;
     }
 
     public function isAsapEnabled(): bool
     {
-        return (bool) static::config()->get('asap_enabled');
+        return $this->settings()->asap;
+    }
+
+    public function isDateOnly(): bool
+    {
+        return $this->settings()->isDateOnly();
     }
 
     /**
-     * The feasible (date, slot) windows for a fulfilment mode, as template-friendly rows.
-     *
-     * Each row is an ArrayData{SlotID, Slot, DateYmd, Date, CapacityLeft (-1 = unlimited), Value, Label},
-     * where Value is the "slotID|Y-m-d" token the checkout picker stores.
+     * The bookable choices for a fulfilment mode, for the order's own pickup store when the mode is pickup.
      *
      * @return ArrayList<ArrayData>
      */
     public function windows(string $mode, ?DBDatetime $now = null): ArrayList
     {
-        $out = ArrayList::create();
+        $store = $mode === DeliverySlot::MODE_PICKUP ? $this->pickupStore() : null;
 
+        return $this->windowsFor($mode, $store, $now);
+    }
+
+    /**
+     * The bookable choices for a fulfilment mode and (pickup) store, as template-friendly rows:
+     * ArrayData{SlotID (0 in date-only mode), Slot (null in date-only mode), DateYmd, Date, CapacityLeft
+     * (-1 = unlimited), Value, Label}. Value is the "slotID|Y-m-d" token the checkout stores.
+     *
+     * @return ArrayList<ArrayData>
+     */
+    public function windowsFor(string $mode, ?DataObject $store, ?DBDatetime $now = null): ArrayList
+    {
         $nowTs = $this->nowTimestamp($now);
-        $horizon = max(0, (int) static::config()->get('horizon_days'));
-        $globalPrep = max(0, (int) static::config()->get('global_prep_minutes'));
-        $cutoff = (string) static::config()->get('cutoff_time');
-        $leadFloor = $this->leadFloorYmd();
+        $earliest = $this->earliestYmd($store, $nowTs);
+        $last = date('Y-m-d', (int) strtotime(sprintf('+%d day', $this->settings()->horizonDays), $nowTs));
 
-        /** @var array<int, DeliverySlot> $slots */
-        $slots = DeliverySlot::get()->filter('Enabled', true)->toArray();
-        if ($slots === []) {
-            return $out;
+        return $this->isDateOnly()
+            ? $this->dateWindows($store, $earliest, $last)
+            : $this->slotWindows($mode, $store, $nowTs, $earliest, $last);
+    }
+
+    /**
+     * Whether a submitted choice ("slotID|Y-m-d" or the ASAP sentinel) is bookable right now for this mode and store.
+     * The server-side check behind the checkout: a crafted, stale or other-store value is refused.
+     */
+    public function isFeasible(string $choice, string $mode, ?DataObject $store, ?DBDatetime $now = null): bool
+    {
+        if ($choice === 'asap') {
+            return $this->isAsapEnabled();
         }
 
-        // Pickup at a specific store (click-and-collect + store-locations): only that store's slots, on its open days.
-        $pickupStore = $mode === DeliverySlot::MODE_PICKUP ? $this->pickupStore() : null;
-
-        for ($dayOffset = 0; $dayOffset <= $horizon; $dayOffset++) {
-            $dayTs = strtotime(sprintf('+%d day', $dayOffset), $nowTs);
-            if ($dayTs === false) {
-                continue;
-            }
-
-            $ymd = date('Y-m-d', $dayTs);
-            $iso = (int) date('N', $dayTs);
-
-            if ($leadFloor !== null && $ymd < $leadFloor) {
-                continue;
-            }
-
-            foreach ($slots as $slot) {
-                if ((int) $slot->Weekday !== $iso || !$slot->modeMatches($mode)) {
-                    continue;
-                }
-
-                // Store-bound slots: skip another store's slot for a pickup order, and any day the store is closed.
-                $slotStore = $this->slotStore($slot);
-                if ($slotStore !== null && $pickupStore !== null && (int) $slotStore->ID !== (int) $pickupStore->ID) {
-                    continue;
-                }
-                $store = $slotStore ?? $pickupStore;
-                if ($store !== null && !$this->storeOpenOn($store, $ymd)) {
-                    continue;
-                }
-
-                $slotStartTs = strtotime($ymd . ' ' . $this->timeValue($slot->StartTime));
-                if ($slotStartTs === false) {
-                    continue;
-                }
-
-                // Earliest feasible: enough prep/lead time before the window opens.
-                if ($slotStartTs < $nowTs + $slot->prepMinutes($globalPrep) * 60) {
-                    continue;
-                }
-
-                // Same-day cutoff: once today's cutoff has passed, drop the rest of today.
-                if ($dayOffset === 0 && $cutoff !== '') {
-                    $cutoffTs = strtotime($ymd . ' ' . $cutoff);
-                    if ($cutoffTs !== false && $nowTs >= $cutoffTs) {
-                        continue;
-                    }
-                }
-
-                $capacity = (int) $slot->Capacity;
-                $left = $capacity > 0 ? $this->capacityLeft($slot, $ymd) : -1;
-                if ($capacity > 0 && $left <= 0) {
-                    continue;
-                }
-
-                $out->push($this->row($slot, $ymd, $left));
+        foreach ($this->windowsFor($mode, $store, $now) as $window) {
+            if ((string) $window->Value === $choice) {
+                return true;
             }
         }
 
-        return $out;
+        return false;
+    }
+
+    /**
+     * The earliest date (Y-m-d) that can be offered: today, or tomorrow after the cutoff, plus the preparation time
+     * in working days, floored by the cart's made-to-order expected date.
+     */
+    public function earliestYmd(?DataObject $store = null, ?int $nowTs = null): string
+    {
+        $nowTs ??= $this->nowTimestamp(null);
+        $settings = $this->settings();
+
+        $start = date('Y-m-d', $nowTs);
+        if ($settings->cutoff !== '') {
+            $cutoffTs = strtotime($start . ' ' . $settings->cutoff);
+            if ($cutoffTs !== false && $nowTs >= $cutoffTs) {
+                $start = $this->nextDay($start);
+            }
+        }
+
+        $earliest = $settings->leadDays > 0 ? $this->addWorkingDays($store, $start, $settings->leadDays) : $start;
+
+        $floor = $this->leadFloorYmd();
+
+        return $floor !== null && $floor > $earliest ? $floor : $earliest;
+    }
+
+    /**
+     * Whether a date can be chosen at all: an open day of the store, or (without a store) a working weekday that is
+     * not a global closing day.
+     */
+    public function isOfferDay(?DataObject $store, string $ymd): bool
+    {
+        if ($store !== null) {
+            return $this->storeOpenOn($store, $ymd);
+        }
+
+        $ts = strtotime($ymd);
+
+        return $ts !== false
+            && $this->settings()->isWorkingWeekday((int) date('N', $ts))
+            && !$this->isGlobalClosingDay($ymd);
+    }
+
+    /**
+     * The date $days working days after $startYmd (the start itself does not count).
+     */
+    public function addWorkingDays(?DataObject $store, string $startYmd, int $days): string
+    {
+        if ($store instanceof StoreLocation && class_exists(OpeningCalendar::class)) {
+            $date = new DateTimeImmutable($startYmd . ' 12:00:00', $store->getTimezoneObject());
+            $result = OpeningCalendar::singleton()->workingDaysAfter($store, $date, $days);
+            if ($result !== null) {
+                return $result->format('Y-m-d');
+            }
+        }
+
+        $current = $startYmd;
+        $counted = 0;
+        // A year is enough to find any number of working days a shop would configure.
+        for ($i = 0; $i < 366 && $counted < $days; $i++) {
+            $current = $this->nextDay($current);
+            if ($this->isOfferDay($store, $current)) {
+                $counted++;
+            }
+        }
+
+        return $current;
     }
 
     /**
@@ -207,7 +226,7 @@ class SlotAvailabilityService
     }
 
     /**
-     * The single earliest feasible window for ASAP, or null when nothing is bookable in the horizon.
+     * The single earliest bookable choice for ASAP, or null when nothing is bookable in the horizon.
      */
     public function asapWindow(string $mode, ?DBDatetime $now = null): ?ArrayData
     {
@@ -242,6 +261,95 @@ class SlotAvailabilityService
         }
 
         return $max;
+    }
+
+    /**
+     * The store a pickup order is collected from (click-and-collect's link to store-locations), or null.
+     */
+    public function pickupStore(): ?DataObject
+    {
+        if (!$this->order instanceof Order) {
+            return null;
+        }
+        $store = OptionalCall::invoke($this->order, 'PickupStoreLocation');
+
+        return $store instanceof DataObject && $store->exists() ? $store : null;
+    }
+
+    /**
+     * @return ArrayList<ArrayData>
+     */
+    private function dateWindows(?DataObject $store, string $earliest, string $last): ArrayList
+    {
+        $out = ArrayList::create();
+        for ($ymd = $earliest; $ymd <= $last; $ymd = $this->nextDay($ymd)) {
+            if ($this->isOfferDay($store, $ymd)) {
+                $out->push($this->row(null, $ymd, -1));
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * @return ArrayList<ArrayData>
+     */
+    private function slotWindows(
+        string $mode,
+        ?DataObject $store,
+        int $nowTs,
+        string $earliest,
+        string $last
+    ): ArrayList {
+        $out = ArrayList::create();
+
+        /** @var array<int, DeliverySlot> $slots */
+        $slots = DeliverySlot::get()->filter('Enabled', true)->toArray();
+        if ($slots === []) {
+            return $out;
+        }
+
+        $globalPrep = $this->settings()->prepMinutes;
+        // A pickup store limits the choice to its own slots (plus slots without a store), on its open days.
+        $pickupStore = $mode === DeliverySlot::MODE_PICKUP ? $store : null;
+
+        for ($ymd = $earliest; $ymd <= $last; $ymd = $this->nextDay($ymd)) {
+            $dayTs = strtotime($ymd);
+            if ($dayTs === false) {
+                continue;
+            }
+            $iso = (int) date('N', $dayTs);
+
+            foreach ($slots as $slot) {
+                if ((int) $slot->Weekday !== $iso || !$slot->modeMatches($mode)) {
+                    continue;
+                }
+
+                $slotStore = $this->slotStore($slot);
+                if ($slotStore !== null && $pickupStore !== null && (int) $slotStore->ID !== (int) $pickupStore->ID) {
+                    continue;
+                }
+                $dayStore = $slotStore ?? $pickupStore;
+                if ($dayStore !== null ? !$this->storeOpenOn($dayStore, $ymd) : $this->isGlobalClosingDay($ymd)) {
+                    continue;
+                }
+
+                $slotStartTs = strtotime($ymd . ' ' . $this->timeValue($slot->StartTime));
+                if ($slotStartTs === false || $slotStartTs < $nowTs + $slot->prepMinutes($globalPrep) * 60) {
+                    continue;
+                }
+
+                $capacity = (int) $slot->Capacity;
+                $left = $capacity > 0 ? $this->capacityLeft($slot, $ymd) : -1;
+                if ($capacity > 0 && $left <= 0) {
+                    continue;
+                }
+
+                $out->push($this->row($slot, $ymd, $left));
+            }
+        }
+
+        return $out;
     }
 
     /**
@@ -282,19 +390,6 @@ class SlotAvailabilityService
     }
 
     /**
-     * The store a pickup order is collected from (click-and-collect's link to store-locations), or null.
-     */
-    public function pickupStore(): ?DataObject
-    {
-        if (!$this->order instanceof Order) {
-            return null;
-        }
-        $store = OptionalCall::invoke($this->order, 'PickupStoreLocation');
-
-        return $store instanceof DataObject && $store->exists() ? $store : null;
-    }
-
-    /**
      * Whether a store has any opening hours on a date (its regular week, seasons, exceptions, holidays and status
      * applied), asked of store-locations' OpeningCalendar. Memoised per store and date.
      */
@@ -312,29 +407,67 @@ class SlotAvailabilityService
         return $this->openMemo[$key];
     }
 
-    private function row(DeliverySlot $slot, string $ymd, int $left): ArrayData
+    /**
+     * A closing day for all locations, from store-locations (an exception without a store). False without that
+     * module.
+     */
+    private function isGlobalClosingDay(string $ymd): bool
+    {
+        if ($this->globalClosures === null) {
+            $this->globalClosures = [];
+            if (class_exists(OpeningException::class)) {
+                $closures = OpeningException::get()->filter([
+                    'StoreLocationID' => 0,
+                    'Type' => OpeningException::TYPE_CLOSED,
+                ]);
+                foreach ($closures as $closure) {
+                    $this->globalClosures[] = [
+                        (string) $closure->DateFrom,
+                        (string) $closure->DateTo,
+                        (bool) $closure->RecurringYearly,
+                    ];
+                }
+            }
+        }
+
+        foreach ($this->globalClosures as [$from, $to, $yearly]) {
+            if (DateRules::matches($ymd, $from, $to, $yearly)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function row(?DeliverySlot $slot, string $ymd, int $left): ArrayData
     {
         $date = DBDate::create('RequestedDate');
         $date->setValue($ymd);
+        $slotId = $slot instanceof DeliverySlot ? (int) $slot->ID : 0;
 
         return ArrayData::create([
-            'SlotID' => (int) $slot->ID,
+            'SlotID' => $slotId,
             'Slot' => $slot,
             'DateYmd' => $ymd,
             'Date' => $date,
             'CapacityLeft' => $left,
-            'Value' => ((int) $slot->ID) . '|' . $ymd,
-            'Label' => $this->label($slot, $ymd),
+            'Value' => $slotId . '|' . $ymd,
+            'Label' => $this->label($slot, $date),
         ]);
     }
 
-    private function label(DeliverySlot $slot, string $ymd): string
+    private function label(?DeliverySlot $slot, DBDate $date): string
     {
-        $ts = strtotime($ymd);
-        $datePart = $ts === false ? $ymd : date('D j M', $ts);
-        $range = $slot->TimeRange();
+        // Localised day name and month ("Mon 24 Nov", "ma 24 nov.").
+        $datePart = (string) $date->Format('EEE d MMM');
+        $range = $slot instanceof DeliverySlot ? $slot->TimeRange() : '';
 
         return $range !== '' ? $datePart . ' · ' . $range : $datePart;
+    }
+
+    private function nextDay(string $ymd): string
+    {
+        return date('Y-m-d', (int) strtotime($ymd . ' +1 day'));
     }
 
     private function nowTimestamp(?DBDatetime $now): int

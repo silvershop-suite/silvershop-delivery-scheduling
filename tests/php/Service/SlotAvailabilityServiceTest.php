@@ -6,8 +6,8 @@ namespace SilverShop\DeliveryScheduling\Tests\Service;
 
 use SilverShop\DeliveryScheduling\Model\DeliverySlot;
 use SilverShop\DeliveryScheduling\Service\SlotAvailabilityService;
+use SilverShop\DeliveryScheduling\Tests\UsesScheduleSettings;
 use SilverShop\Model\Order;
-use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\ORM\FieldType\DBDatetime;
 
@@ -19,6 +19,8 @@ use SilverStripe\ORM\FieldType\DBDatetime;
  */
 class SlotAvailabilityServiceTest extends SapphireTest
 {
+    use UsesScheduleSettings;
+
     protected $usesDatabase = true;
 
     private const MONDAY_9AM = '2026-01-05 09:00:00';
@@ -85,7 +87,7 @@ class SlotAvailabilityServiceTest extends SapphireTest
 
     public function testSameDayCutoffExcludesToday(): void
     {
-        Config::modify()->set(SlotAvailabilityService::class, 'cutoff_time', '08:00:00');
+        $this->scheduleSettings(['DeliveryScheduleCutoff' => '08:00:00']);
         $slot = $this->mondaySlot();
 
         $values = $this->values(DeliverySlot::MODE_DELIVERY);
@@ -162,7 +164,7 @@ class SlotAvailabilityServiceTest extends SapphireTest
 
     public function testHorizonBoundsTheLookahead(): void
     {
-        Config::modify()->set(SlotAvailabilityService::class, 'horizon_days', 3);
+        $this->scheduleSettings(['DeliveryScheduleHorizonDays' => 3]);
         $slot = $this->mondaySlot();
 
         $values = $this->values(DeliverySlot::MODE_DELIVERY);

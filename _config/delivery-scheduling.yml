@@ -10,6 +10,22 @@ SilverShop\Model\Order:
 SilverShop\Page\CheckoutPageController:
   extensions:
     - SilverShop\DeliveryScheduling\Extension\ShippingMethodStepExtension
+SilverStripe\SiteConfig\SiteConfig:
+  extensions:
+    - SilverShop\DeliveryScheduling\Extension\DeliveryScheduleSiteConfigExtension
+
+---
+Name: silvershop-delivery-scheduling-singlepage
+After:
+  - '#shopcheckout'
+---
+# Single-page checkout: append the picker component with an Injector `calls:` entry (core's config has no
+# add-component hook; `calls:` composes with other modules' `class:` overrides or calls, see shipping-myparcel).
+# The stepped checkout gets the picker through ShippingMethodStepExtension instead.
+SilverStripe\Core\Injector\Injector:
+  SilverShop\Checkout\SinglePageCheckoutComponentConfig:
+    calls:
+      - [ addComponent, [ '%$SilverShop\DeliveryScheduling\Checkout\DeliveryScheduleCheckoutComponent', 'SilverShop\Checkout\Component\Notes' ] ]
 
 ---
 Name: silvershop-delivery-scheduling-store-locations

@@ -19,7 +19,8 @@ use SilverStripe\Forms\Form;
  * the shipping step is configured, so this extension is inert (no-op) on a site without silvershop/shipping,
  * and no shipping class is referenced here.
  *
- * Single-page checkout (ShippingCheckoutComponent, which has no equivalent field hook) is a v2 addition.
+ * The single-page checkout gets the picker through
+ * {@see \SilverShop\DeliveryScheduling\Checkout\DeliveryScheduleCheckoutComponent}.
  *
  * @extends Extension<\SilverShop\Page\CheckoutPageController>
  */
@@ -31,9 +32,8 @@ class ShippingMethodStepExtension extends Extension
      * This only appends fields — it deliberately does NOT call $form->setValidator(), which would REPLACE the
      * form validator. silvershop-suite/delivery-zones also hooks updateShippingMethodForm on this same controller and
      * installs its minimum-order validator via setValidator(); appending fields here leaves that intact, so the
-     * two modules compose regardless of extension order. The picker needs no validator (the OptionsetField
-     * always submits a pre-selected value); a future "slot required" rule must be ADDED to $form->getValidator(),
-     * never set over it.
+     * two modules compose regardless of extension order. The picker validates itself: its own validate() checks the
+     * submitted value against the shipping method chosen on the same form, with choices computed for this request.
      */
     public function updateShippingMethodForm(Form $form): void
     {
@@ -48,8 +48,9 @@ class ShippingMethodStepExtension extends Extension
     }
 
     /**
-     * Persist the chosen window when the shipping method is submitted. The core step writes the order after
-     * this hook returns.
+     * Persist the chosen window when the shipping method is submitted (the method is already set on the order, so
+     * the value is checked once more against that method's context). The core step writes the order after this
+     * hook returns.
      *
      * @param mixed $data form data (array)
      * @param mixed $form the submitting form

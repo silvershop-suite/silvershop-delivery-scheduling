@@ -39,6 +39,7 @@ en:
     Asap: 'As soon as possible'
     Left: '{count} left'
     NoWindows: 'No delivery or pickup windows are currently available; we will contact you to arrange timing.'
+    LegendDate: 'Choose a delivery / pickup date'
   SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail:
     SubjectScheduled: 'Your order #{OrderNo} is scheduled'
     SubjectOut: 'Your order #{OrderNo} is on its way'
@@ -52,3 +53,29 @@ en:
     OutFineprint: 'You are receiving this because your order is scheduled for delivery.'
   SilverShop\DeliveryScheduling\Extension\DeliverySlotStoreLocationExtension:
     StoreLocationDesc: 'Optional. A slot for one store is only offered on days that store is open, and for pickup only at that store. Leave empty for a slot that applies everywhere.'
+  SilverShop\DeliveryScheduling\Extension\DeliveryScheduleSiteConfigExtension:
+    Header: 'Delivery and pickup dates'
+    Enabled: 'Let customers choose a date'
+    EnabledDesc: 'Shows a delivery / pickup date choice in the checkout.'
+    Mode: 'What customers choose'
+    ModeSlots: 'A date and a time slot'
+    ModeDate: 'A date only'
+    ModeDesc: 'Time slots are managed under Delivery scheduling. With "a date only" no slots are needed.'
+    LeadDays: 'Preparation time (working days)'
+    LeadDaysDesc: 'The earliest date is this many working days after the order. 0 = the same day.'
+    Cutoff: 'Order cutoff time'
+    CutoffDesc: 'Orders placed after this time count from the next day. Leave empty for no cutoff.'
+    HorizonDays: 'Days ahead'
+    HorizonDaysDesc: 'How many days ahead customers can choose.'
+    WorkingDays: 'Working days'
+    WorkingDaysDesc: 'Days on which orders are prepared and delivered. The preparation time counts these days. Pickup at a store follows that store''s opening hours and closing days instead. Nothing ticked = Monday to Friday.'
+    Asap: 'Offer "as soon as possible"'
+    AsapDesc: 'An extra choice for the earliest possible date.'
+    PrepMinutes: 'Default slot preparation time (minutes)'
+    PrepMinutesDesc: 'Time slots only: minutes needed before a slot can start, unless the slot sets its own.'
+  SilverShop\DeliveryScheduling\Forms\SchedulePickerField:
+    Required: 'Please choose a date.'
+    Unavailable: 'This date is not available (any more) for the chosen delivery or pickup. Please choose another one.'
+    NoneForMethod: 'No dates are available for this choice right now; we will contact you to arrange a date.'
+  SilverShop\DeliveryScheduling\Checkout\DeliveryScheduleCheckoutComponent:
+    Unavailable: 'This date is not available (any more). Please choose another one.'
