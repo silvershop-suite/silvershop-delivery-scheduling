@@ -145,7 +145,7 @@ class DateScheduleTest extends SapphireTest
     {
         $this->requireStoreLocations();
         $store = StoreLocation::create([
-            'Title' => 'Voorstraat',
+            'Title' => 'High Street',
             'Timezone' => 'Europe/Amsterdam',
             'RegularHours' => WeeklyHoursField::encode([
                 1 => '09:00-18:00', 2 => '09:00-18:00', 3 => '09:00-18:00',

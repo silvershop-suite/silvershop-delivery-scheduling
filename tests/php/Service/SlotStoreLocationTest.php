@@ -69,7 +69,7 @@ class SlotStoreLocationTest extends SapphireTest
     private function store(array $data = []): StoreLocation
     {
         $store = StoreLocation::create(array_merge([
-            'Title' => 'Voorstraat',
+            'Title' => 'High Street',
             'Timezone' => 'Europe/Amsterdam',
             'RegularHours' => WeeklyHoursField::encode([1 => '09:00-18:00', 2 => '09:00-18:00']),
         ], $data));
@@ -135,12 +135,12 @@ class SlotStoreLocationTest extends SapphireTest
     public function testPickupOrderOnlySeesItsStoreOnItsOpenDays(): void
     {
         $delft = $this->store();
-        $nootdorp = $this->store(['Title' => 'Nootdorp']);
+        $riverside = $this->store(['Title' => 'Riverside']);
         $this->closedOn($delft, self::NEXT_MONDAY);
 
         $anyStore = $this->mondaySlot();
         $delftSlot = $this->mondaySlot($delft);
-        $nootdorpSlot = $this->mondaySlot($nootdorp);
+        $riversideSlot = $this->mondaySlot($riverside);
 
         SlotStoreLocationTestOrderExtension::$store = $delft;
         $order = Order::create();
@@ -153,7 +153,7 @@ class SlotStoreLocationTest extends SapphireTest
         $this->assertNotContains($anyStore->ID . '|' . self::NEXT_MONDAY, $dates, 'Delft is closed that day');
         $this->assertNotContains($delftSlot->ID . '|' . self::NEXT_MONDAY, $dates, 'Delft is closed that day');
         foreach ($dates as $value) {
-            $this->assertStringStartsNotWith($nootdorpSlot->ID . '|', $value, 'another store\'s slot');
+            $this->assertStringStartsNotWith($riversideSlot->ID . '|', $value, 'another store\'s slot');
         }
         $this->assertSame($delft->ID, SlotAvailabilityService::create($order)->pickupStore()?->ID);
     }

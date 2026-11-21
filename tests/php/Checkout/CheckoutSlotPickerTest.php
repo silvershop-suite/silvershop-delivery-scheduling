@@ -215,7 +215,7 @@ class CheckoutSlotPickerTest extends SapphireTest
             ->setMethodContexts([10 => 'pickup-1', 20 => 'pickup-2'])
             ->setDefaultContext('pickup-1');
         $form = Form::create(null, 'Form', FieldList::create(
-            OptionsetField::create('ShippingMethodID', 'Method', [10 => 'Voorstraat', 20 => 'Nootdorp']),
+            OptionsetField::create('ShippingMethodID', 'Method', [10 => 'High Street', 20 => 'Riverside']),
             $field
         ), FieldList::create());
 
@@ -238,22 +238,22 @@ class CheckoutSlotPickerTest extends SapphireTest
         $this->scheduleSettings(['DeliveryScheduleMode' => 'date']);
 
         $hours = WeeklyHoursField::encode([1 => '09:00-18:00', 2 => '09:00-18:00', 3 => '09:00-18:00']);
-        $voorstraat = StoreLocation::create(['Title' => 'Voorstraat', 'Timezone' => 'Europe/Amsterdam', 'RegularHours' => $hours]);
-        $voorstraat->write();
-        $nootdorp = StoreLocation::create(['Title' => 'Nootdorp', 'Timezone' => 'Europe/Amsterdam', 'RegularHours' => $hours]);
-        $nootdorp->write();
-        OpeningException::create(['StoreLocationID' => $nootdorp->ID, 'DateFrom' => '2026-01-06', 'Type' => 'Closed'])->write();
+        $highStreet = StoreLocation::create(['Title' => 'High Street', 'Timezone' => 'Europe/Amsterdam', 'RegularHours' => $hours]);
+        $highStreet->write();
+        $riverside = StoreLocation::create(['Title' => 'Riverside', 'Timezone' => 'Europe/Amsterdam', 'RegularHours' => $hours]);
+        $riverside->write();
+        OpeningException::create(['StoreLocationID' => $riverside->ID, 'DateFrom' => '2026-01-06', 'Type' => 'Closed'])->write();
 
-        $atVoorstraat = TestPickupMethod::create(['Name' => 'Collect at Voorstraat', 'TestStoreID' => $voorstraat->ID]);
-        $atVoorstraat->write();
-        $atNootdorp = TestPickupMethod::create(['Name' => 'Collect at Nootdorp', 'TestStoreID' => $nootdorp->ID]);
-        $atNootdorp->write();
+        $atHighStreet = TestPickupMethod::create(['Name' => 'Collect at High Street', 'TestStoreID' => $highStreet->ID]);
+        $atHighStreet->write();
+        $atRiverside = TestPickupMethod::create(['Name' => 'Collect at Riverside', 'TestStoreID' => $riverside->ID]);
+        $atRiverside->write();
 
-        $context = CheckoutSlotPicker::contextForMethod($atNootdorp);
-        $this->assertSame('pickup-' . $nootdorp->ID, $context['key']);
+        $context = CheckoutSlotPicker::contextForMethod($atRiverside);
+        $this->assertSame('pickup-' . $riverside->ID, $context['key']);
 
         $order = Order::create();
-        $this->assertTrue(CheckoutSlotPicker::isChoiceValid($order, '0|2026-01-06', (int) $atVoorstraat->ID));
-        $this->assertFalse(CheckoutSlotPicker::isChoiceValid($order, '0|2026-01-06', (int) $atNootdorp->ID), 'Nootdorp is closed that day');
+        $this->assertTrue(CheckoutSlotPicker::isChoiceValid($order, '0|2026-01-06', (int) $atHighStreet->ID));
+        $this->assertFalse(CheckoutSlotPicker::isChoiceValid($order, '0|2026-01-06', (int) $atRiverside->ID), 'Riverside is closed that day');
     }
 }
