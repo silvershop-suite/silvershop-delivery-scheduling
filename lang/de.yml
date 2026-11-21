@@ -22,6 +22,7 @@ de:
     Fri: 'Freitag'
     Sat: 'Samstag'
     Sun: 'Sonntag'
+    has_one_StoreLocation: 'Geschäft'
   SilverShop\DeliveryScheduling\Admin\DeliverySlotAdmin:
     MENUTITLE: 'Lieferplanung'
   SilverShop\DeliveryScheduling\Extension\OrderSchedulingExtension:
@@ -49,3 +50,5 @@ de:
     OutHeading: 'Ihre Bestellung ist unterwegs'
     OutIntro: 'Gute Nachrichten — Ihre Bestellung ist unterwegs und bald bei Ihnen.'
     OutFineprint: 'Sie erhalten diese Nachricht, weil Ihre Bestellung zur Lieferung geplant ist.'
+  SilverShop\DeliveryScheduling\Extension\DeliverySlotStoreLocationExtension:
+    StoreLocationDesc: 'Optional. Ein Zeitfenster für ein Geschäft wird nur an Tagen angeboten, an denen es geöffnet ist, und bei Abholung nur für dieses Geschäft. Leer lassen für ein Zeitfenster, das überall gilt.'

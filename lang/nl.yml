@@ -22,6 +22,7 @@ nl:
     Fri: 'Vrijdag'
     Sat: 'Zaterdag'
     Sun: 'Zondag'
+    has_one_StoreLocation: 'Winkel'
   SilverShop\DeliveryScheduling\Admin\DeliverySlotAdmin:
     MENUTITLE: 'Bezorgplanning'
   SilverShop\DeliveryScheduling\Extension\OrderSchedulingExtension:
@@ -49,3 +50,5 @@ nl:
     OutHeading: 'Uw bestelling is onderweg'
     OutIntro: 'Goed nieuws — uw bestelling is onderweg en is binnenkort bij u.'
     OutFineprint: 'U ontvangt dit bericht omdat uw bestelling voor bezorging is ingepland.'
+  SilverShop\DeliveryScheduling\Extension\DeliverySlotStoreLocationExtension:
+    StoreLocationDesc: 'Optioneel. Een tijdvak voor één winkel wordt alleen aangeboden op dagen dat die winkel open is, en bij afhalen alleen voor die winkel. Leeg laten voor een tijdvak dat overal geldt.'

@@ -57,6 +57,7 @@ Requires `silvershop/core ^6.2` (framework + cms ^6). Everything below is option
 | `silvershop-suite/shippability` | A cart with pickup-only lines forces pickup, so only pickup windows are offered. |
 | `silvershop-suite/product-status` | The cart's longest made-to-order expected date floors the earliest selectable window. |
 | `silvershop-suite/delivery-zones` | Per-zone availability + fee + minimum order (companion module); v2 can restrict a window to matched zones. |
+| `silvershop-suite/store-locations` | Slots per physical store: a slot linked to a store is only offered on days that store is open (its exceptions, holidays and temporary closures apply). With click-and-collect, a pickup order only sees its own store's slots, on that store's open days. |
 | `silvershop-suite/store-profile` | Shop name + address shown on the emails. |
 | `silvershop-suite/notification-log` | Logs the scheduling emails from the stamped header (fulfilment audit). |
 | `silvershop-suite/order-admin` | Surfaces the window + an out-for-delivery action in the modern order screen (a standalone Scheduling tab otherwise). |
@@ -74,8 +75,9 @@ SilverShop\DeliveryScheduling\Service\SlotAvailabilityService:
 
 ## Roadmap (v2)
 
-Deliberately **not** in v1: blackout / holiday dates + a weekly open-hours editor (candidate `store-profile`
-home); multi-location windows (slot ↔ pickup location); zone-restricted windows (`delivery-zones`); a driver
+Deliberately **not** in v1 (closed days and per-store slots come from `silvershop-suite/store-locations`, see
+above): a date-only mode without time windows; lead time in working days; zone-restricted windows
+(`delivery-zones`); a driver
 / route manifest export; an `.ics` attachment on the confirmation; a hard atomic capacity reservation under
 concurrency (v1 hides full windows and re-reads capacity at each decision point, mirroring
 `silvershop/stock`'s check-based discipline); the single-page-checkout `ShippingCheckoutComponent` picker; and

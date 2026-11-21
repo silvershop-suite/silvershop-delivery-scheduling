@@ -22,6 +22,7 @@ en:
     Fri: 'Friday'
     Sat: 'Saturday'
     Sun: 'Sunday'
+    has_one_StoreLocation: 'Store'
   SilverShop\DeliveryScheduling\Admin\DeliverySlotAdmin:
     MENUTITLE: 'Delivery scheduling'
   SilverShop\DeliveryScheduling\Extension\OrderSchedulingExtension:
@@ -49,3 +50,5 @@ en:
     OutHeading: 'Your order is on its way'
     OutIntro: 'Good news — your order is out for delivery and should be with you soon.'
     OutFineprint: 'You are receiving this because your order is scheduled for delivery.'
+  SilverShop\DeliveryScheduling\Extension\DeliverySlotStoreLocationExtension:
+    StoreLocationDesc: 'Optional. A slot for one store is only offered on days that store is open, and for pickup only at that store. Leave empty for a slot that applies everywhere.'

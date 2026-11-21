@@ -35,7 +35,8 @@
         "cambis/silverstan": "^2.1",
         "silverstripe/recipe-testing": "^4",
         "silverstripe/sqlite3": "^4",
-        "squizlabs/php_codesniffer": "^3.0"
+        "squizlabs/php_codesniffer": "^3.0",
+        "silvershop-suite/store-locations": "^1.0"
     },
     "suggest": {
         "silvershop-suite/click-and-collect": "Adds the collect-in-store fulfilment choice; its pickup orders reuse this module's windows (pickup slots come from here, not a second slot engine).",
@@ -45,7 +46,8 @@
         "silvershop-suite/product-status": "A cart's longest made-to-order expected date floors the earliest selectable window.",
         "silvershop-suite/store-profile": "Shop name + address shown on the scheduled / out-for-delivery emails (and the future open-hours / radius origin home).",
         "silvershop-suite/notification-log": "Logs the delivery.scheduled / delivery.out_for_delivery emails from the stamped header (fulfilment audit).",
-        "silvershop-suite/order-admin": "Surfaces the chosen window + the out-for-delivery action in the modern order screen (this module ships a standalone Scheduling tab otherwise)."
+        "silvershop-suite/order-admin": "Surfaces the chosen window + the out-for-delivery action in the modern order screen (this module ships a standalone Scheduling tab otherwise).",
+        "silvershop-suite/store-locations": "Slots per physical store, skipped on that store's closed days (exceptions, holidays, temporary closure); pickup orders only see their store's slots."
     },
     "prefer-stable": true,
     "minimum-stability": "dev",
@@ -78,5 +80,11 @@
         "stan": "vendor/bin/phpstan analyse --configuration=phpstan.neon --memory-limit=-1",
         "lint": "vendor/bin/phpcs",
         "lint:fix": "vendor/bin/phpcbf"
-    }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/silvershop-suite/silvershop-store-locations.git"
+        }
+    ]
 }

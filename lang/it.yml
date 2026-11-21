@@ -22,6 +22,7 @@ it:
     Fri: 'Venerdì'
     Sat: 'Sabato'
     Sun: 'Domenica'
+    has_one_StoreLocation: 'Negozio'
   SilverShop\DeliveryScheduling\Admin\DeliverySlotAdmin:
     MENUTITLE: 'Pianificazione consegne'
   SilverShop\DeliveryScheduling\Extension\OrderSchedulingExtension:
@@ -49,3 +50,5 @@ it:
     OutHeading: 'Il tuo ordine è in arrivo'
     OutIntro: 'Buone notizie — il tuo ordine è in consegna e arriverà presto.'
     OutFineprint: 'Ricevi questo messaggio perché il tuo ordine è programmato per la consegna.'
+  SilverShop\DeliveryScheduling\Extension\DeliverySlotStoreLocationExtension:
+    StoreLocationDesc: 'Facoltativo. Una fascia legata a un negozio è proposta solo nei giorni in cui il negozio è aperto e, per il ritiro, solo per quel negozio. Lascia vuoto per una fascia valida ovunque.'

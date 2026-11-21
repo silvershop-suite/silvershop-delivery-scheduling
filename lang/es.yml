@@ -22,6 +22,7 @@ es:
     Fri: 'Viernes'
     Sat: 'Sábado'
     Sun: 'Domingo'
+    has_one_StoreLocation: 'Tienda'
   SilverShop\DeliveryScheduling\Admin\DeliverySlotAdmin:
     MENUTITLE: 'Planificación de entregas'
   SilverShop\DeliveryScheduling\Extension\OrderSchedulingExtension:
@@ -49,3 +50,5 @@ es:
     OutHeading: 'Su pedido está en camino'
     OutIntro: 'Buenas noticias — su pedido está en reparto y llegará pronto.'
     OutFineprint: 'Recibe este mensaje porque su pedido está programado para entrega.'
+  SilverShop\DeliveryScheduling\Extension\DeliverySlotStoreLocationExtension:
+    StoreLocationDesc: 'Opcional. Una franja de una tienda solo se ofrece los días en que esa tienda abre y, para recogida, solo en esa tienda. Déjelo vacío para una franja válida en todas partes.'

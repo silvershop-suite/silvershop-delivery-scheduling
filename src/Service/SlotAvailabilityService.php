@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace SilverShop\DeliveryScheduling\Service;
 
+use DateTimeImmutable;
 use SilverShop\DeliveryScheduling\Model\DeliverySlot;
 use SilverShop\DeliveryScheduling\Support\OptionalCall;
 use SilverShop\Model\Order;
+use SilverShop\StoreLocations\Hours\OpeningCalendar;
+use SilverShop\StoreLocations\Model\StoreLocation;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\Core\Injector\Injectable;
 use SilverStripe\Model\ArrayData;
@@ -27,6 +30,9 @@ use Throwable;
  *    floors the earliest selectable date — a window before it is dropped.
  *  - SAME-DAY CUTOFF: once the day's cutoff time has passed, today is no longer offered.
  *  - CAPACITY: a window full of placed orders for that date is hidden (0 capacity = unlimited).
+ *  - STORE DAYS (with silvershop-suite/store-locations): a slot tied to a store, and every pickup slot of an order
+ *    collected at a store, is only offered on days that store is open; a pickup order only sees its own store's
+ *    slots (plus slots without a store).
  *  - ASAP: the single earliest feasible window.
  *
  * Pure and deterministic — `now` is injectable, so every rule is unit-testable without the clock.
@@ -71,6 +77,9 @@ class SlotAvailabilityService
      */
     private static bool $scheduling_enabled = true;
 
+    /** @var array<string, bool> */
+    private array $openMemo = [];
+
     public function __construct(private ?Order $order = null)
     {
     }
@@ -109,6 +118,9 @@ class SlotAvailabilityService
             return $out;
         }
 
+        // Pickup at a specific store (click-and-collect + store-locations): only that store's slots, on its open days.
+        $pickupStore = $mode === DeliverySlot::MODE_PICKUP ? $this->pickupStore() : null;
+
         for ($dayOffset = 0; $dayOffset <= $horizon; $dayOffset++) {
             $dayTs = strtotime(sprintf('+%d day', $dayOffset), $nowTs);
             if ($dayTs === false) {
@@ -124,6 +136,16 @@ class SlotAvailabilityService
 
             foreach ($slots as $slot) {
                 if ((int) $slot->Weekday !== $iso || !$slot->modeMatches($mode)) {
+                    continue;
+                }
+
+                // Store-bound slots: skip another store's slot for a pickup order, and any day the store is closed.
+                $slotStore = $this->slotStore($slot);
+                if ($slotStore !== null && $pickupStore !== null && (int) $slotStore->ID !== (int) $pickupStore->ID) {
+                    continue;
+                }
+                $store = $slotStore ?? $pickupStore;
+                if ($store !== null && !$this->storeOpenOn($store, $ymd)) {
                     continue;
                 }
 
@@ -247,6 +269,47 @@ class SlotAvailabilityService
         }
 
         return null;
+    }
+
+    /**
+     * The store a slot belongs to (silvershop-suite/store-locations), or null.
+     */
+    private function slotStore(DeliverySlot $slot): ?DataObject
+    {
+        $store = OptionalCall::invoke($slot, 'SlotStoreLocation');
+
+        return $store instanceof DataObject && $store->exists() ? $store : null;
+    }
+
+    /**
+     * The store a pickup order is collected from (click-and-collect's link to store-locations), or null.
+     */
+    public function pickupStore(): ?DataObject
+    {
+        if (!$this->order instanceof Order) {
+            return null;
+        }
+        $store = OptionalCall::invoke($this->order, 'PickupStoreLocation');
+
+        return $store instanceof DataObject && $store->exists() ? $store : null;
+    }
+
+    /**
+     * Whether a store has any opening hours on a date (its regular week, seasons, exceptions, holidays and status
+     * applied), asked of store-locations' OpeningCalendar. Memoised per store and date.
+     */
+    private function storeOpenOn(DataObject $store, string $ymd): bool
+    {
+        $key = $store->ID . '|' . $ymd;
+        if (!array_key_exists($key, $this->openMemo)) {
+            $this->openMemo[$key] = true;
+            if (class_exists(OpeningCalendar::class) && $store instanceof StoreLocation) {
+                $date = new DateTimeImmutable($ymd . ' 12:00:00', $store->getTimezoneObject());
+                $this->openMemo[$key] = OpeningCalendar::singleton()->isOpenOn($store, $date);
+            }
+        }
+
+        return $this->openMemo[$key];
     }
 
     private function row(DeliverySlot $slot, string $ymd, int $left): ArrayData

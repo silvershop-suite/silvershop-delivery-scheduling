@@ -22,6 +22,7 @@ fr:
     Fri: 'Vendredi'
     Sat: 'Samedi'
     Sun: 'Dimanche'
+    has_one_StoreLocation: 'Magasin'
   SilverShop\DeliveryScheduling\Admin\DeliverySlotAdmin:
     MENUTITLE: 'Planification des livraisons'
   SilverShop\DeliveryScheduling\Extension\OrderSchedulingExtension:
@@ -49,3 +50,5 @@ fr:
     OutHeading: 'Votre commande est en route'
     OutIntro: 'Bonne nouvelle — votre commande est en cours de livraison et arrivera bientôt.'
     OutFineprint: 'Vous recevez ce message car votre commande est programmée pour la livraison.'
+  SilverShop\DeliveryScheduling\Extension\DeliverySlotStoreLocationExtension:
+    StoreLocationDesc: 'Facultatif. Un créneau lié à un magasin n''est proposé que les jours où ce magasin est ouvert, et pour le retrait uniquement dans ce magasin. Laissez vide pour un créneau valable partout.'

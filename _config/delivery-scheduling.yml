@@ -10,3 +10,13 @@ SilverShop\Model\Order:
 SilverShop\Page\CheckoutPageController:
   extensions:
     - SilverShop\DeliveryScheduling\Extension\ShippingMethodStepExtension
+
+---
+Name: silvershop-delivery-scheduling-store-locations
+Only:
+  classexists: 'SilverShop\StoreLocations\Model\StoreLocation'
+---
+# Slots per physical store (silvershop-suite/store-locations): skipped on the store's closed days.
+SilverShop\DeliveryScheduling\Model\DeliverySlot:
+  extensions:
+    - SilverShop\DeliveryScheduling\Extension\DeliverySlotStoreLocationExtension
