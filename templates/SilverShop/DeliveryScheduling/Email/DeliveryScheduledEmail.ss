@@ -24,7 +24,7 @@
     <div class="card">
         <h1><%t SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail.ScheduledHeading "Your order is scheduled" %></h1>
 
-        <p><%t SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail.ScheduledIntro "Thanks — we have scheduled your order. Here are the details." %></p>
+        <p><%t SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail.ScheduledIntro "Thanks, we have scheduled your order. Here are the details." %></p>
 
         <% if $Order %>
             <p class="ref"><%t SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail.Order "Order" %> #$Order.Reference</p>

@@ -1,6 +1,6 @@
 <%t SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail.ScheduledHeading "Your order is scheduled" %>
 
-<%t SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail.ScheduledIntro "Thanks — we have scheduled your order. Here are the details." %>
+<%t SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail.ScheduledIntro "Thanks, we have scheduled your order. Here are the details." %>
 <% if $Order %>
 <%t SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail.Order "Order" %> #$Order.Reference
 <% end_if %>

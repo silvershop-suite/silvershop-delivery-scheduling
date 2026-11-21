@@ -46,10 +46,10 @@ es:
     Order: 'Pedido'
     WindowLabel: 'Franja solicitada'
     ScheduledHeading: 'Su pedido está programado'
-    ScheduledIntro: 'Gracias — hemos programado su pedido. Aquí están los detalles.'
+    ScheduledIntro: 'Gracias, hemos programado su pedido. Aquí están los detalles.'
     ScheduledFineprint: 'Recibe este mensaje porque eligió una entrega o recogida para su pedido.'
     OutHeading: 'Su pedido está en camino'
-    OutIntro: 'Buenas noticias — su pedido está en reparto y llegará pronto.'
+    OutIntro: 'Buenas noticias: su pedido está en reparto y llegará pronto.'
     OutFineprint: 'Recibe este mensaje porque su pedido está programado para entrega.'
   SilverShop\DeliveryScheduling\Extension\DeliverySlotStoreLocationExtension:
     StoreLocationDesc: 'Opcional. Una franja de una tienda solo se ofrece los días en que esa tienda abre y, para recogida, solo en esa tienda. Déjelo vacío para una franja válida en todas partes.'

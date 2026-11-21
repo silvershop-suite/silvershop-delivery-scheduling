@@ -46,10 +46,10 @@ de:
     Order: 'Bestellung'
     WindowLabel: 'Gewünschtes Zeitfenster'
     ScheduledHeading: 'Ihre Bestellung ist terminiert'
-    ScheduledIntro: 'Danke — wir haben Ihre Bestellung terminiert. Hier sind die Details.'
+    ScheduledIntro: 'Danke, wir haben Ihre Bestellung terminiert. Hier sind die Details.'
     ScheduledFineprint: 'Sie erhalten diese Nachricht, weil Sie eine Lieferung oder Abholung für Ihre Bestellung gewählt haben.'
     OutHeading: 'Ihre Bestellung ist unterwegs'
-    OutIntro: 'Gute Nachrichten — Ihre Bestellung ist unterwegs und bald bei Ihnen.'
+    OutIntro: 'Gute Nachrichten: Ihre Bestellung ist unterwegs und bald bei Ihnen.'
     OutFineprint: 'Sie erhalten diese Nachricht, weil Ihre Bestellung zur Lieferung geplant ist.'
   SilverShop\DeliveryScheduling\Extension\DeliverySlotStoreLocationExtension:
     StoreLocationDesc: 'Optional. Ein Zeitfenster für ein Geschäft wird nur an Tagen angeboten, an denen es geöffnet ist, und bei Abholung nur für dieses Geschäft. Leer lassen für ein Zeitfenster, das überall gilt.'

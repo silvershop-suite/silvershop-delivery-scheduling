@@ -46,10 +46,10 @@ en:
     Order: 'Order'
     WindowLabel: 'Requested window'
     ScheduledHeading: 'Your order is scheduled'
-    ScheduledIntro: 'Thanks — we have scheduled your order. Here are the details.'
+    ScheduledIntro: 'Thanks, we have scheduled your order. Here are the details.'
     ScheduledFineprint: 'You are receiving this because you scheduled a delivery or pickup for your order.'
     OutHeading: 'Your order is on its way'
-    OutIntro: 'Good news — your order is out for delivery and should be with you soon.'
+    OutIntro: 'Good news: your order is out for delivery and should be with you soon.'
     OutFineprint: 'You are receiving this because your order is scheduled for delivery.'
   SilverShop\DeliveryScheduling\Extension\DeliverySlotStoreLocationExtension:
     StoreLocationDesc: 'Optional. A slot for one store is only offered on days that store is open, and for pickup only at that store. Leave empty for a slot that applies everywhere.'

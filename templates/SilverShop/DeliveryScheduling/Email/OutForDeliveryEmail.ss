@@ -22,7 +22,7 @@
     <div class="card">
         <h1><%t SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail.OutHeading "Your order is on its way" %></h1>
 
-        <p><%t SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail.OutIntro "Good news — your order is out for delivery and should be with you soon." %></p>
+        <p><%t SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail.OutIntro "Good news: your order is out for delivery and should be with you soon." %></p>
 
         <% if $Order %>
             <p class="ref"><%t SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail.Order "Order" %> #$Order.Reference</p>

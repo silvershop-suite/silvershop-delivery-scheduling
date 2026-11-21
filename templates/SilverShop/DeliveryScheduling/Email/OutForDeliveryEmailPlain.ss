@@ -1,6 +1,6 @@
 <%t SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail.OutHeading "Your order is on its way" %>
 
-<%t SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail.OutIntro "Good news — your order is out for delivery and should be with you soon." %>
+<%t SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail.OutIntro "Good news: your order is out for delivery and should be with you soon." %>
 <% if $Order %>
 <%t SilverShop\DeliveryScheduling\Email\DeliveryNotificationEmail.Order "Order" %> #$Order.Reference
 <% end_if %>

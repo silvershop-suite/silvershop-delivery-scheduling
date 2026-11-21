@@ -46,10 +46,10 @@ it:
     Order: 'Ordine'
     WindowLabel: 'Fascia richiesta'
     ScheduledHeading: 'Il tuo ordine è programmato'
-    ScheduledIntro: 'Grazie — abbiamo programmato il tuo ordine. Ecco i dettagli.'
+    ScheduledIntro: 'Grazie, abbiamo programmato il tuo ordine. Ecco i dettagli.'
     ScheduledFineprint: 'Ricevi questo messaggio perché hai scelto una consegna o un ritiro per il tuo ordine.'
     OutHeading: 'Il tuo ordine è in arrivo'
-    OutIntro: 'Buone notizie — il tuo ordine è in consegna e arriverà presto.'
+    OutIntro: 'Buone notizie: il tuo ordine è in consegna e arriverà presto.'
     OutFineprint: 'Ricevi questo messaggio perché il tuo ordine è programmato per la consegna.'
   SilverShop\DeliveryScheduling\Extension\DeliverySlotStoreLocationExtension:
     StoreLocationDesc: 'Facoltativo. Una fascia legata a un negozio è proposta solo nei giorni in cui il negozio è aperto e, per il ritiro, solo per quel negozio. Lascia vuoto per una fascia valida ovunque.'
