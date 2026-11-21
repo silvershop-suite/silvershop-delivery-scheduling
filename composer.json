@@ -80,11 +80,5 @@
         "stan": "vendor/bin/phpstan analyse --configuration=phpstan.neon --memory-limit=-1",
         "lint": "vendor/bin/phpcs",
         "lint:fix": "vendor/bin/phpcbf"
-    },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/silvershop-suite/silvershop-store-locations.git"
-        }
-    ]
+    }
 }
